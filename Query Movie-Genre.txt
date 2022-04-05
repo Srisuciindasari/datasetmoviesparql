@@ -1,0 +1,51 @@
+PREFIX       wd: <http://www.wikidata.org/entity/>
+PREFIX      wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX        p: <http://www.wikidata.org/prop/>
+PREFIX       ps: <http://www.wikidata.org/prop/statement/>
+PREFIX       pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX       bd: <http://www.bigdata.com/rdf#>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+
+SELECT DISTINCT ?movie ?genre
+WHERE 
+  { 
+    SERVICE <http://query.wikidata.org/sparql> 
+      { 
+        SELECT DISTINCT ?item ?genre
+        WHERE 
+         {
+            {
+              SELECT DISTINCT ?item
+              WHERE
+              {
+                ?item wdt:P31 wd:Q11424 .
+              }
+              LIMIT 200
+            }
+            ?item wdt:P57 ?itemDirector .
+            ?item wdt:P161 ?itemActor .
+            ?item wdt:P162 ?itemProducer .
+            ?item wdt:P136 ?itemGenre .
+            SERVICE wikibase:label { 
+              bd:serviceParam wikibase:language "en".
+              ?item rdfs:label ?movie .
+              ?itemGenre rdfs:label ?genre .
+              ?itemDirector rdfs:label ?director .
+              ?itemActor rdfs:label ?actor .
+              ?itemProducer rdfs:label ?producer
+            }
+         }
+      }
+    SERVICE <http://dbpedia.org/sparql>
+       { 
+         SELECT  ?name str(?gross) AS ?gross str(?label) AS ?movie
+         FROM  <http://dbpedia.org> 
+         WHERE
+          {
+            ?name owl:sameAs ?item ; rdfs:label  ?label .
+            ?name dbo:gross ?gross .
+            FILTER ( LANG(?label) = "en" )
+          } 
+       }
+   }
